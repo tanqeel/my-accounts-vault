@@ -61,6 +61,8 @@ button{cursor:pointer}
 .btn.danger{color:var(--danger);border-color:var(--danger)}
 .btn.small{min-height:40px;padding:7px 12px;font-size:14px;border-radius:9px}
 .btn:disabled{opacity:.55;cursor:wait}
+.linklike{background:none;border:0;color:var(--accent);text-decoration:underline;cursor:pointer;font-size:13px;padding:0;min-height:0}
+details.panel summary{cursor:pointer;font-weight:700;font-size:16px;list-style-position:inside}
 input[type="file"]{padding:9px}
 .meter{height:8px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:8px}
 .meter i{display:block;height:100%;width:0;background:var(--danger);transition:width .25s}
@@ -129,47 +131,28 @@ input[type="file"]{padding:9px}
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15" r="1.6"/></svg>
     </div>
     <h1>My Accounts Vault</h1>
-    <p class="sub">All your accounts — Muse and everything else — in one locked place. Name, email and password for each account, protected by one master password.</p>
-
-    <div class="tabs" role="tablist" aria-label="Vault options">
-      <button type="button" id="tabCreate" role="tab" aria-selected="true">Create new vault</button>
-      <button type="button" id="tabOpen" role="tab" aria-selected="false">Open saved vault</button>
-    </div>
+    <p class="sub">All your accounts — Muse and everything else — in one locked place. One master password, and your accounts save automatically on this device. Open the app, type the password, and you are in.</p>
 
     <div id="errBox" class="err hidden" role="alert"></div>
 
-    <!-- Create -->
-    <form id="createForm" autocomplete="off">
+    <form id="lockForm" autocomplete="off">
       <div class="field">
-        <label for="newPw">Master password</label>
-        <input type="password" id="newPw" autocomplete="new-password" placeholder="Choose a strong master password">
-        <div class="meter" aria-hidden="true"><i id="meterFill"></i></div>
-        <p class="hint" id="meterText">Use 10+ characters with a mix of letters, numbers and symbols. This one password locks everything — if you forget it, the vault cannot be opened again.</p>
+        <label for="lockPw" id="lockPwLabel">Master password</label>
+        <input type="password" id="lockPw" placeholder="Your master password">
+        <div class="meter hidden" id="meterWrap" aria-hidden="true"><i id="meterFill"></i></div>
+        <p class="hint" id="lockHint"></p>
       </div>
-      <div class="field">
-        <label for="newPw2">Repeat master password</label>
-        <input type="password" id="newPw2" autocomplete="new-password" placeholder="Type it again">
+      <div class="field hidden" id="repeatWrap">
+        <label for="lockPw2">Repeat master password</label>
+        <input type="password" id="lockPw2" autocomplete="new-password" placeholder="Type it again">
       </div>
-      <button class="btn primary" type="submit" id="createBtn">Create vault &amp; start adding</button>
+      <button class="btn primary" type="submit" id="lockGoBtn">Unlock vault</button>
     </form>
-
-    <!-- Open -->
-    <form id="openForm" class="hidden" autocomplete="off">
-      <div class="field">
-        <label for="vaultFile">Your saved vault file</label>
-        <input type="file" id="vaultFile" accept=".json,application/json">
-        <p class="hint">The file you downloaded with “Export vault file” — usually named <b>my-accounts-vault.json</b>.</p>
-      </div>
-      <div class="field">
-        <label for="openPw">Master password</label>
-        <input type="password" id="openPw" autocomplete="current-password" placeholder="The password you set for this vault">
-      </div>
-      <button class="btn primary" type="submit" id="openBtn">Unlock vault</button>
-    </form>
+    <p class="hint" style="text-align:center;margin-top:14px"><button class="linklike" type="button" id="resetLink">Forgot master password? Erase everything and start over</button></p>
 
     <div class="offline-note">
       <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12a10 10 0 0 1 14 0"/><path d="M8.5 15.5a5.5 5.5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/><path d="M3 3l18 18"/></svg>
-      <span><strong>Works with no internet.</strong> Everything runs on this device only. Nothing is sent anywhere — your accounts are encrypted with your master password and saved only in the file you export.</span>
+      <span><strong>Works with no internet.</strong> Everything runs on this device only. Nothing is sent anywhere — your accounts save automatically on this device, locked with your master password.</span>
     </div>
 <div id="installBox" class="hidden" style="margin-top:14px">
       <button class="btn primary" type="button" id="installBtn" style="width:100%">Install as app</button>
@@ -189,10 +172,6 @@ input[type="file"]{padding:9px}
     </div>
   </div>
 
-  <div class="banner" id="dirtyBanner">
-    <strong>Remember to export:</strong> accounts live only in this page until you save them. Tap <b>Export vault file</b> after adding or changing anything, and keep that file somewhere safe — it is your only copy.
-  </div>
-
   <div class="searchbox">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg>
     <input type="search" id="searchInput" placeholder="Search by name, service or email…" aria-label="Search accounts by name, service or email">
@@ -202,9 +181,6 @@ input[type="file"]{padding:9px}
 
   <div class="toolbar">
     <button class="btn primary" type="button" id="addToggle">＋ Add an account</button>
-    <button class="btn" type="button" id="exportBtn">⬇ Export vault file</button>
-    <label class="btn" for="importFile" style="cursor:pointer">⬆ Import vault file</label>
-    <input type="file" id="importFile" accept=".json,application/json" class="hidden">
   </div>
 
   <!-- Add / edit form -->
@@ -263,7 +239,17 @@ input[type="file"]{padding:9px}
 
   <div id="list"></div>
 
-  <p class="foot">Encrypted on this device with AES-256. No account, no server, no internet needed. If you forget the master password, the exported file cannot be opened — keep the password somewhere safe too.</p>
+  <details class="panel" id="backupBox">
+    <summary>Backup &amp; restore (optional)</summary>
+    <p class="sub" style="margin-top:10px">Your accounts already save automatically on this device — you do not need this to use the vault. Use it only to keep a spare copy, or to move your accounts to another phone. If you already exported a vault file from the old version, import it here once and it will be saved on this device.</p>
+    <div class="form-actions" style="margin-top:4px">
+      <button class="btn" type="button" id="exportBtn">⬇ Export backup file</button>
+      <label class="btn" for="importFile" style="cursor:pointer">⬆ Import backup file</label>
+      <input type="file" id="importFile" accept=".json,application/json" class="hidden">
+    </div>
+  </details>
+
+  <p class="foot">Saves automatically on this device, locked with your master password. No account, no server, no internet needed. If you forget the master password, the vault cannot be opened — keep the password somewhere safe too.</p>
 </div>
 
 <!-- confirm modal -->
@@ -282,7 +268,7 @@ input[type="file"]{padding:9px}
 <div class="overlay hidden" id="pwOverlay">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pwTitle">
     <h3 id="pwTitle">Change master password</h3>
-    <p>Set a new master password. After changing it, export a fresh vault file — old exported files still open with the old password.</p>
+    <p>Set a new master password. Your accounts stay where they are — they are re-locked with the new password automatically. Old backup files still open with the old password.</p>
     <form id="pwForm" autocomplete="off">
       <div class="field">
         <label for="pwNew">New master password</label>
@@ -308,12 +294,11 @@ input[type="file"]{padding:9px}
 "use strict";
 var $ = function(id){ return document.getElementById(id); };
 
-/* ---------------- state (memory only — nothing is stored in the browser) ---------------- */
+/* ---------------- state: the vault lives in this device's storage, auto-saved ---------------- */
+var LS_KEY = "mav_vault_v1";
 var masterPassword = null;
 var accounts = [];        // {id, service, label, name, email, password, website, notes, updated}
 var editingId = null;
-var pendingDeleteId = null;
-var dirty = false;
 
 /* ---------------- crypto helpers (Web Crypto — built into the browser, works offline) ---------------- */
 function bufToB64(buf){
@@ -350,6 +335,18 @@ async function decryptVault(password, fileObj){
   return JSON.parse(new TextDecoder().decode(plain));
 }
 
+/* ---------------- local auto-save: encrypted, on this device only ---------------- */
+function loadLocal(){
+  try { var raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return null; }
+}
+function saveLocal(){
+  if (!masterPassword) return Promise.resolve();
+  return encryptVault(masterPassword, { created:new Date().toISOString(), accounts:accounts })
+    .then(function(fileObj){ localStorage.setItem(LS_KEY, JSON.stringify(fileObj)); })
+    .catch(function(){ toast("Could not save on this device"); });
+}
+
 /* ---------------- small utilities ---------------- */
 function esc(s){
   return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
@@ -375,30 +372,26 @@ function copyText(text, what){
     document.body.removeChild(ta);
   }
 }
-function markDirty(){
-  dirty = true;
-  $("dirtyBanner").innerHTML = "<strong>Unsaved changes:</strong> tap <b>Export vault file</b> to save them into your vault file. Until then they exist only on this screen.";
-}
-function markClean(){
-  dirty = false;
-  $("dirtyBanner").innerHTML = "<strong>Remember to export:</strong> accounts live only in this page until you save them. Tap <b>Export vault file</b> after adding or changing anything, and keep that file somewhere safe — it is your only copy.";
-}
 function showErr(box, msg){ box.textContent = msg; box.classList.remove("hidden"); }
 function hideErr(box){ box.classList.add("hidden"); }
 
-/* ---------------- lock screen: tabs ---------------- */
-$("tabCreate").addEventListener("click", function(){ setTab(true); });
-$("tabOpen").addEventListener("click", function(){ setTab(false); });
-function setTab(create){
-  $("tabCreate").setAttribute("aria-selected", create ? "true" : "false");
-  $("tabOpen").setAttribute("aria-selected", create ? "false" : "true");
-  $("createForm").classList.toggle("hidden", !create);
-  $("openForm").classList.toggle("hidden", create);
-  hideErr($("errBox"));
+/* ---------------- lock screen: one password, nothing else ---------------- */
+function refreshLock(){
+  var exists = !!loadLocal();
+  $("repeatWrap").classList.toggle("hidden", exists);
+  $("meterWrap").classList.toggle("hidden", exists);
+  $("resetLink").style.display = exists ? "" : "none";
+  $("lockPwLabel").textContent = exists ? "Master password" : "Create a master password";
+  $("lockPw").placeholder = exists ? "Your master password" : "Choose a strong master password";
+  $("lockPw").setAttribute("autocomplete", exists ? "current-password" : "new-password");
+  $("lockGoBtn").textContent = exists ? "Unlock vault" : "Create vault & start adding";
+  $("lockHint").textContent = exists
+    ? "Type the password you set for this vault."
+    : "Use 10+ characters with a mix of letters, numbers and symbols. This one password locks everything — if you forget it, the vault cannot be opened again.";
 }
 
-/* master password strength meter */
-$("newPw").addEventListener("input", function(){
+/* master password strength meter (create mode only) */
+$("lockPw").addEventListener("input", function(){
   var v = this.value, score = 0;
   if (v.length >= 8) score++;
   if (v.length >= 12) score++;
@@ -409,54 +402,43 @@ $("newPw").addEventListener("input", function(){
   var fill = $("meterFill");
   fill.style.width = pct + "%";
   fill.style.background = score <= 2 ? "var(--danger)" : (score <= 3 ? "#d99a06" : "var(--accent)");
-  $("meterText").textContent = v.length === 0
-    ? "Use 10+ characters with a mix of letters, numbers and symbols. This one password locks everything — if you forget it, the vault cannot be opened again."
-    : (score <= 2 ? "Weak — make it longer and mix letters, numbers and symbols."
-      : score <= 3 ? "Okay — a bit longer would make it stronger."
-      : "Strong master password. Remember it — it cannot be recovered.");
 });
 
-/* create vault */
-$("createForm").addEventListener("submit", function(e){
+/* one form: creates the vault the first time, unlocks it afterwards */
+$("lockForm").addEventListener("submit", async function(e){
   e.preventDefault(); hideErr($("errBox"));
-  var pw = $("newPw").value, pw2 = $("newPw2").value;
-  if (pw.length < 8){ showErr($("errBox"), "Master password must be at least 8 characters. 10 or more is better."); return; }
-  if (pw !== pw2){ showErr($("errBox"), "The two passwords do not match. Type the same password in both boxes."); return; }
-  masterPassword = pw; accounts = []; editingId = null;
-  enterVault(); markClean();
-  toast("Vault created — add your first account");
-});
-
-/* open vault file */
-var loadedFileObj = null;
-$("vaultFile").addEventListener("change", function(){
-  loadedFileObj = null;
-  var f = this.files && this.files[0]; if (!f) return;
-  var reader = new FileReader();
-  reader.onload = function(){
-    try { loadedFileObj = JSON.parse(String(reader.result)); }
-    catch(e){ showErr($("errBox"), "That file could not be read. Choose the vault file you exported from here (my-accounts-vault.json)."); }
-  };
-  reader.readAsText(f);
-});
-$("openForm").addEventListener("submit", async function(e){
-  e.preventDefault(); hideErr($("errBox"));
-  var pw = $("openPw").value;
-  if (!loadedFileObj){ showErr($("errBox"), "First choose your saved vault file above."); return; }
-  if (!pw){ showErr($("errBox"), "Type the master password for this vault."); return; }
-  var btn = $("openBtn"); btn.disabled = true; btn.textContent = "Unlocking…";
+  var pw = $("lockPw").value;
+  var stored = loadLocal();
+  if (!stored){
+    var pw2 = $("lockPw2").value;
+    if (pw.length < 8){ showErr($("errBox"), "Master password must be at least 8 characters. 10 or more is better."); return; }
+    if (pw !== pw2){ showErr($("errBox"), "The two passwords do not match. Type the same password in both boxes."); return; }
+    masterPassword = pw; accounts = []; editingId = null;
+    await saveLocal();
+    enterVault();
+    toast("Vault created — add your first account");
+    return;
+  }
+  if (!pw){ showErr($("errBox"), "Type your master password."); return; }
+  var btn = $("lockGoBtn"); btn.disabled = true; btn.textContent = "Unlocking…";
   try {
-    var data = await decryptVault(pw, loadedFileObj);
+    var data = await decryptVault(pw, stored);
     masterPassword = pw;
     accounts = Array.isArray(data.accounts) ? data.accounts : [];
-    enterVault(); markClean();
+    enterVault();
     toast("Vault unlocked — " + accounts.length + (accounts.length === 1 ? " account" : " accounts"));
   } catch(err){
-    showErr($("errBox"), err && err.message === "notvault"
-      ? "That is not a vault file from this page. Choose the my-accounts-vault.json file you exported."
-      : "Could not open the vault. The master password is wrong, or the file is damaged.");
+    showErr($("errBox"), "Wrong master password. Try again.");
   }
   btn.disabled = false; btn.textContent = "Unlock vault";
+});
+
+$("resetLink").addEventListener("click", function(){
+  if (confirm("This erases everything saved on this device — all accounts will be lost. Continue?")){
+    localStorage.removeItem(LS_KEY);
+    $("lockPw").value = ""; $("lockPw2").value = "";
+    refreshLock();
+  }
 });
 
 /* ---------------- vault screen ---------------- */
@@ -468,21 +450,15 @@ function enterVault(){
   window.scrollTo(0,0);
 }
 function lockVault(){
-  masterPassword = null; accounts = []; editingId = null; dirty = false;
-  $("newPw").value = ""; $("newPw2").value = ""; $("openPw").value = "";
-  $("vaultFile").value = ""; loadedFileObj = null;
+  masterPassword = null; accounts = []; editingId = null;
+  $("lockPw").value = ""; $("lockPw2").value = "";
   $("entryForm").classList.add("hidden");
   $("vaultScreen").classList.add("hidden");
   $("lockScreen").classList.remove("hidden");
+  refreshLock();
   window.scrollTo(0,0);
 }
-$("lockBtn").addEventListener("click", function(){
-  if (dirty && !window.__skipDirtyWarn){
-    openConfirm("Lock without exporting?", "You have changes that are not exported yet. If you lock now, those changes will be lost.", "Lock anyway", function(){ lockVault(); });
-    return;
-  }
-  lockVault();
-});
+$("lockBtn").addEventListener("click", lockVault);
 
 /* ---------------- search ---------------- */
 $("searchInput").addEventListener("input", function(){
@@ -561,7 +537,7 @@ $("list").addEventListener("click", function(e){
     openConfirm("Delete this account?", "“" + (a.label || a.service) + "” (" + a.email + ") will be removed from the vault. Export afterwards to save the change.", "Delete", function(){
       accounts = accounts.filter(function(x){ return x.id !== id; });
       if (editingId === id) closeForm();
-      markDirty(); renderList(); toast("Account deleted");
+      saveLocal().then(function(){ renderList(); toast("Account deleted"); });
     });
   }
 });
@@ -625,7 +601,7 @@ $("entryForm").addEventListener("submit", function(e){
     accounts.push(entry);
     toast("Account added");
   }
-  markDirty(); closeForm(); renderList();
+  saveLocal().then(function(){ closeForm(); renderList(); });
 });
 
 /* ---------------- export / import ---------------- */
@@ -644,10 +620,9 @@ $("exportBtn").addEventListener("click", async function(){
   try {
     var fileObj = await encryptVault(masterPassword, { created:new Date().toISOString(), accounts:accounts });
     download("my-accounts-vault.json", JSON.stringify(fileObj, null, 2));
-    markClean();
-    toast("Vault file saved — keep it somewhere safe");
+    toast("Backup file saved — keep it somewhere safe");
   } catch(e){ toast("Export failed in this browser"); }
-  btn.disabled = false; btn.textContent = "⬇ Export vault file";
+  btn.disabled = false; btn.textContent = "⬇ Export backup file";
 });
 $("importFile").addEventListener("change", function(){
   var f = this.files && this.files[0]; this.value = "";
@@ -660,17 +635,19 @@ $("importFile").addEventListener("change", function(){
       openConfirm("Not a vault file", "That file was not exported from this vault, so it cannot be imported.", "OK", null, true);
       return;
     }
+    var pw = prompt("Enter the master password for this backup file:");
+    if (!pw) return;
     try {
-      var data = await decryptVault(masterPassword, obj);
+      var data = await decryptVault(pw, obj);
       var incoming = Array.isArray(data.accounts) ? data.accounts : [];
       openConfirm("Import " + incoming.length + " accounts?",
-        "This replaces the accounts currently on screen with the ones in that file (it must use the same master password). Export afterwards to keep them as your main file.",
+        "This replaces the accounts on this device with the ones in that file.",
         "Import & replace", function(){
-          accounts = incoming; closeForm(); markDirty(); renderList();
-          toast("Imported " + incoming.length + " accounts");
+          accounts = incoming; closeForm();
+          saveLocal().then(function(){ renderList(); toast("Imported " + incoming.length + " accounts"); });
         });
     } catch(e){
-      openConfirm("Wrong password for that file", "That vault file uses a different master password than the one currently unlocked. Lock this vault and open that file from the start screen instead.", "OK", null, true);
+      openConfirm("Wrong password for that file", "That backup file uses a different master password. Try again with the password you set when you exported it.", "OK", null, true);
     }
   };
   reader.readAsText(f);
@@ -687,9 +664,11 @@ $("pwForm").addEventListener("submit", function(e){
   var a = $("pwNew").value, b = $("pwNew2").value;
   if (a.length < 8){ showErr($("pwErr"), "New password must be at least 8 characters."); return; }
   if (a !== b){ showErr($("pwErr"), "The two passwords do not match."); return; }
-  masterPassword = a; markDirty();
-  $("pwOverlay").classList.add("hidden");
-  toast("Master password changed — export a fresh vault file");
+  masterPassword = a;
+  saveLocal().then(function(){
+    $("pwOverlay").classList.add("hidden");
+    toast("Master password changed");
+  });
 });
 
 /* ---------------- confirm modal ---------------- */
@@ -709,6 +688,9 @@ $("modalOk").addEventListener("click", function(){
   var cb = modalCallback; modalCallback = null;
   if (cb) cb();
 });
+
+/* first paint: create mode if nothing is saved yet, unlock mode otherwise */
+refreshLock();
 })();
 </script>
 <script>
