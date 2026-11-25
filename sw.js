@@ -1,9 +1,9 @@
 /* My Accounts Vault service worker — offline app shell.
    Strategy: navigations are network-first (fresh copy when online, cached
    shell when offline); same-origin files are cache-first. No account data
-   is ever cached or sent anywhere — accounts live only in the exported
-   vault file the user saves. */
-var VERSION = "accounts-vault-v1";
+   is ever cached or sent anywhere — accounts are saved automatically in
+   this device's local storage, encrypted with the master password. */
+var VERSION = "accounts-vault-v2";
 var CACHE = VERSION + "-shell";
 var SCOPE = self.registration.scope;
 
